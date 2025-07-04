@@ -67,17 +67,32 @@ public class ReservationNotificationWorker : BackgroundService
         var message = new MimeMessage();
         message.From.Add(new MailboxAddress(_smtp.FromName, _smtp.FromAddress));
         message.To.Add(MailboxAddress.Parse(evt.EmailUtilisateur));
-        message.Subject = $"Confirmation réservation #{evt.TrajetId}";
+        message.Subject = $"Confirmation de votre réservation Cocovoit";
+    
+        var bodyText = $"""
+                        Bonjour,
+
+                        Votre réservation est confirmée ! 
+
+                        📍 Détails du trajet :
+                        • Départ : {evt.DetailsTrajet.AdresseDepart}
+                        • Arrivée : {evt.DetailsTrajet.AdresseArrivee}
+                        • Date et heure : {evt.DetailsTrajet.DateHeure:dddd dd MMMM yyyy à HH:mm}
+                        • Conducteur : {evt.DetailsTrajet.NomConducteur}
+                        • Places disponibles : {evt.DetailsTrajet.NombrePlaces}
+
+                        Numéro de réservation : {evt.TrajetId}
+
+                        Si nécessaire, le conducteur vous contactera à l'adresse : {evt.EmailUtilisateur}
+
+                        Merci d'utiliser Cocovoit 🚗
+
+                        Bon voyage !
+                        """;
+
         message.Body = new TextPart("plain")
         {
-            Text = $"""
-                    Bonjour,
-
-                    Votre trajet {evt.DetailsTrajet} est confirmé !
-                    Identifiant réservation : {evt.TrajetId}
-
-                    Merci d’utiliser Cocovoit 🚗
-                    """
+            Text = bodyText
         };
 
         using var client = new SmtpClient();
@@ -85,6 +100,7 @@ public class ReservationNotificationWorker : BackgroundService
         await client.SendAsync(message, ct);
         await client.DisconnectAsync(true, ct);
 
-        _logger.LogInformation("Mail envoyé à {Email} pour réservation {Id}", evt.EmailUtilisateur, evt.TrajetId);
+        _logger.LogInformation("Mail envoyé à {Email} pour réservation trajet {Id}", 
+            evt.EmailUtilisateur, evt.TrajetId);
     }
 }
