@@ -5,5 +5,5 @@ public record ReservationCreatedEvent(
     long UtilisateurId,
     string EmailUtilisateur,
     DateTime DateReservation,
-    string DetailsTrajet
+    DetailsTrajetDto DetailsTrajet
 );
